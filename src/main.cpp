@@ -1,4 +1,5 @@
 #include <iostream>
+#include <optional>
 #include <stdlib.h>
 #include <time.h>
 #include <tuple>
@@ -13,7 +14,7 @@
 
 #define INTRO_MSG "Welcome to a game of Blackjack!\n"
 #define OUTRO_MSG "Thanks for playing!\n"
-#define PLAYER_TURN_MSG "It's your turn! Please choose your next move.\n1 = Hit, 2 = Stand, 3 = Fold\nYour current deck: " 
+#define PLAYER_TURN_MSG "Please choose your next move.\n1 = Hit, 2 = Stand, 3 = Fold\nYour current deck: " 
 
 void swap(char* a, char* b) {
 	char temp = *a;
@@ -54,20 +55,31 @@ int get_char() {
 void print_hand(std::vector<char>& hand) {
 	std::cout << "{";
 	for (size_t i = 0; i < hand.size(); ++i) {
-		std::cout << "'" << hand[i] << "'";
+		const char card = hand[i];
+		std::cout << "'";
+		if (card == '0') { std::cout << "10"; } else { std::cout << card; }
+		std::cout << "'";
+
 		if (i != hand.size() - 1) { std::cout << ", "; }
 	}
 	std::cout << "}\n";
 }
 
-void hit(std::vector<char>& public_deck, std::vector<char>& target_deck) {
+void hit(std::vector<char>& public_deck, std::vector<char>& target_deck, const char& silent) {
 	if (public_deck.empty()) {
 		std::cout << "The public deck is empty!\n\n";
 		return;
 	}
 
-	target_deck.push_back(public_deck.back());
+	const char received_card = public_deck.back();
+	target_deck.push_back(received_card);
 	public_deck.pop_back();
+
+	if (silent != '1') {
+		std::cout << "Hit! Card received: ";
+		if (received_card == '0') { std::cout << "10"; } else { std::cout << received_card; }
+		std::cout << "\n\n";
+	}
 }
 
 int get_value_from_hand(std::vector<char>& hand) {
@@ -137,7 +149,7 @@ std::tuple<std::vector<char>, std::vector<char>, std::vector<char>> init() {
 		dealer_hand.push_back(public_deck.back()); public_deck.pop_back();
 	}
 
-	while ( (get_value_from_hand(dealer_hand) < 17) && (!public_deck.empty()) ) { hit(public_deck, dealer_hand); }
+	while ( (get_value_from_hand(dealer_hand) < 17) && (!public_deck.empty()) ) { hit(public_deck, dealer_hand, '1'); }
 	std::cout << INTRO_MSG;
 	return {public_deck, player_hand, dealer_hand};
 }
@@ -145,7 +157,7 @@ std::tuple<std::vector<char>, std::vector<char>, std::vector<char>> init() {
 void parse_action(std::vector<char>& public_deck, std::vector<char>& hand, const int& action, char& ready, char& fold) {
 	switch (action) {
 		case 1:
-			hit(public_deck, hand);
+			hit(public_deck, hand, '0');
 			break;
 		case 2:
 			ready = '1';
@@ -175,7 +187,7 @@ short int check(std::vector<char>& player_hand, std::vector<char>& dealer_hand, 
 	}
 
 	if (stand == '1') {
-		std::cout << "Your hand: "; print_hand(player_hand);
+		std::cout << "\nYour hand: "; print_hand(player_hand);
 		std::cout << "Dealer's hand: "; print_hand(dealer_hand); std::cout << '\n';
 
 		if ( get_value_from_hand(dealer_hand) > 21 ) {
@@ -187,6 +199,8 @@ short int check(std::vector<char>& player_hand, std::vector<char>& dealer_hand, 
 			return 1;
 		} else if ( get_value_from_hand(player_hand) == get_value_from_hand(dealer_hand) ) {
 			return 3;
+		} else {
+			return 2;
 		}
 	} else if (fold == '1') {
 		std::cout << "Player folded!\n";
