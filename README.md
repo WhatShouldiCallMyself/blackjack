@@ -3,5 +3,5 @@
 
 > ⚠ This project was speedran, expect some small amount of spaghetti code
 
-It's literally just blackjack ran in a terminal. It's compiled with g++ 
+It's literally just blackjack ran in a terminal. It's compiled with g++.  
 I made this in a few minutes, have fun ig.
